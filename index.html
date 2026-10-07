@@ -52,7 +52,7 @@
 
 <div class="container hidden" id="mainContent">
     <div class="sticky-header mb-4 d-flex justify-content-between align-items-center">
-        <h2 class="text-primary m-0">Етап 3: Оцінювання матеріалів (PDF)v4</h2>
+        <h2 class="text-primary m-0">Етап 3: Оцінювання матеріалів (PDF)v5</h2>
         <div id="userEmailDisplay" class="badge bg-secondary p-2"></div>
     </div>
 
@@ -325,15 +325,14 @@
     function formatEmbedUrl(url) {
         if (!url) return null;
         
-        // 1. YouTube
+        // 1. YouTube (залишаємо, якщо колись будуть відео)
         const ytRegExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
         const ytMatch = url.match(ytRegExp);
         if (ytMatch && ytMatch[2].length === 11) {
             return `https://www.youtube.com/embed/${ytMatch[2]}`;
         }
         
-        // 2. Файли з Google Drive (НОВЕ)
-        // Якщо це посилання на Google Диск, міняємо /view на /preview
+        // 2. Google Drive (залишаємо про всяк випадок)
         if (url.includes('drive.google.com/file/d/')) {
             const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
             if (match && match[1]) {
@@ -341,16 +340,15 @@
             }
         }
         
-        // 3. Прямі посилання на PDF (на інших сайтах)
+        // 3. Прямі посилання на PDF (на вашому сервері ipp.org.ua)
+        // БІЛЬШЕ НЕ ВИКОРИСТОВУЄМО Google Docs Viewer.
+        // Віддаємо пряме посилання, щоб браузер відкрив PDF своїми рідними засобами.
         if (url.toLowerCase().includes('.pdf')) {
-            const cleanUrl = url.split('#')[0];
-            const encodedUrl = encodeURIComponent(cleanUrl);
-            return `https://docs.google.com/viewer?url=${encodedUrl}&embedded=true`;
+            return url.split('#')[0]; // Повертаємо чисте посилання без обгорток
         }
         
         return url;
     }
-
     document.getElementById('participantName').onchange = function() {
         const index = this.value;
         const mediaDiv = document.getElementById('pdfDisplay');
