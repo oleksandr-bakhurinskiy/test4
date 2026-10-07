@@ -52,7 +52,7 @@
 
 <div class="container hidden" id="mainContent">
     <div class="sticky-header mb-4 d-flex justify-content-between align-items-center">
-        <h2 class="text-primary m-0">Етап 3: Оцінювання матеріалів (PDF)v5</h2>
+        <h2 class="text-primary m-0">Етап 3: Оцінювання матеріалів (PDF)v6</h2>
         <div id="userEmailDisplay" class="badge bg-secondary p-2"></div>
     </div>
 
@@ -69,7 +69,6 @@
         </div>
 
         <div class="container mt-4">
-            <!-- ТАБЛИЦІ КРИТЕРІЇВ (Залишив без змін для скорочення) -->
             <div class="criterion-group border p-3 mb-4 rounded bg-white shadow-sm">
                 <h4 class="text-primary border-bottom pb-2">1. Мета, очікувані результати і відповідність темі (макс. 20 балів)</h4>
                 <div class="table-responsive">
@@ -209,8 +208,6 @@
     };
 
     // === БЛОК ПОСИЛАНЬ НА ЗАВДАННЯ ===
-    // Тут додано всі можливі варіанти того, як ваш Google Script може віддавати категорію 
-    // (повною назвою або кодом A-05, B-T1 і т.д.). Підставте реальні посилання.
     const taskLinksMap = {
         "Категорія А: Початкова освіта": "https://ipp.org.ua/wp-content/uploads/2026/10/YA_doslidzhuiu_svit_4_klas.pdf",
         "A-05": "https://ipp.org.ua/wp-content/uploads/2026/10/YA_doslidzhuiu_svit_4_klas.pdf",
@@ -235,9 +232,6 @@
         "Категорія Б: Образотворче мистецтво": "https://ipp.org.ua/wp-content/uploads/2026/10/Obrazotvorche_mystetstvo_5_klas.pdf",
         "B-O2": "https://ipp.org.ua/wp-content/uploads/2026/10/Obrazotvorche_mystetstvo_5_klas.pdf"
     };
-
-    const appendixLink = "ПОСИЛАННЯ_НА_ДОДАТОК_ДЛЯ_ЖУРІ";
-    // ================================
 
     window.onload = function () {
         google.accounts.id.initialize({
@@ -321,7 +315,6 @@
             .catch(err => console.error("Помилка завантаження учасників:", err));
     }
 
-
     function formatEmbedUrl(url) {
         if (!url) return null;
         
@@ -349,6 +342,7 @@
         
         return url;
     }
+
     document.getElementById('participantName').onchange = function() {
         const index = this.value;
         const mediaDiv = document.getElementById('pdfDisplay');
@@ -359,11 +353,6 @@
         }
         
         const rawUrl = participantsData[index][2]; 
-        
-        // --- ДУЖЕ ВАЖЛИВО ---
-        // Тут ми беремо категорію (або код) учасника з масиву даних, які прислав Google Script.
-        // Я поставив індекс [4]. Якщо у вашій таблиці ця колонка йде іншою за рахунком 
-        // (наприклад [1] або [5]), змініть цифру 4 на правильну.
         const participantSubcategory = participantsData[index][4] ? String(participantsData[index][4]).trim() : ""; 
         
         const embedUrl = formatEmbedUrl(rawUrl);
@@ -377,10 +366,8 @@
                    </div>` 
                 : '';
             
-            // Динамічне формування кнопки завдання для конкретного учасника
+            // --- ГЕНЕРАЦІЯ КНОПКИ ЗАВДАННЯ ---
             let taskButtonHtml = '';
-            
-            // Шукаємо посилання для конкретної підкатегорії учасника
             const taskUrl = taskLinksMap[participantSubcategory];
             
             if (taskUrl) {
@@ -391,10 +378,26 @@
                 taskButtonHtml = `<span class="text-muted small align-self-center border p-2 rounded">Категорію учасника не знайдено</span>`;
             }
 
+            // --- ДИНАМІЧНЕ ПОСИЛАННЯ НА ДОДАТОК ДЛЯ ЖУРІ ---
+            // Витягуємо всі цифри з імені/шифру учасника (з "Учасник 7" отримаємо "7", з "12" -> "12")
+            let rawNumber = String(participantsData[index][0]).replace(/\D/g, '');
+            
+            // Якщо раптом у назві взагалі немає цифр, беремо порядковий номер зі списку
+            if (!rawNumber) {
+                rawNumber = String(parseInt(index) + 1);
+            }
+            
+            // Прибираємо зайві нулі спереду, якщо вони раптом є у вихідних даних (напр. "07" стане "7")
+            let formattedId = parseInt(rawNumber, 10).toString();
+            
+            // Збираємо фінальне посилання
+            let dynamicAppendixLink = `https://ipp.org.ua/wp-content/uploads/2026/10/Etap3_kartky_dlia_zhuri_${formattedId}.pdf`;
+            // ----------------------------------------------
+
             const extraButtons = `
                 <div class="mt-4 d-flex gap-2 justify-content-center flex-wrap">
                     ${taskButtonHtml}
-                    <a href="${appendixLink}" target="_blank" class="btn btn-info px-4 text-white fw-bold">Додаток для журі</a>
+                    <a href="${dynamicAppendixLink}" target="_blank" class="btn btn-info px-4 text-white fw-bold">Додаток для журі</a>
                 </div>
             `;
             
